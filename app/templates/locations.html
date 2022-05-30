@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="title has-text-centered">
+  Locations
+</h1>
+
+
+
+
+<div class="box">
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+        <div class="notification is-success">
+            {{ messages[0] }}
+        </div>
+    {% endif %}
+  {% endwith %}
+
+  <a class="button is-link" href="/locations/new">Add new location</a>
+
+  <table class="mt-4 table">
+    <thead>
+      <td>
+        Location
+      </td>
+      <td>
+        Valid from
+      </td>
+      <td>
+        Valid until
+      </td>
+    </thead>
+    <tbody>
+      {% for location in locations %}
+        <tr>
+          <td>
+            {{ location.name }}
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}
