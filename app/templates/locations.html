@@ -8,7 +8,7 @@
 
 
 
-<div class="box">
+<div class="box" style="min-height: 70vh">
   {% with messages = get_flashed_messages() %}
     {% if messages %}
         <div class="notification is-success">
@@ -19,23 +19,36 @@
 
   <a class="button is-link" href="/locations/new">Add new location</a>
 
-  <table class="mt-4 table">
+  <table class="mt-4 table is-striped is-fullwidth is-hoverable">
     <thead>
-      <td>
+      <th>
         Location
-      </td>
-      <td>
+      </th>
+      <th>
         Valid from
-      </td>
-      <td>
+      </th>
+      <th>
         Valid until
-      </td>
+      </th>
+      <th>
+        Actions
+      </th>
     </thead>
     <tbody>
       {% for location in locations %}
         <tr>
           <td>
-            {{ location.name }}
+            <a class="has-text-link" href="/locations/{{ location.id }}">{{ location.name }}</a>
+          </td>
+          <td>
+            {{ location.valid_from }}
+          </td>
+          <td>
+            {{ location.valid_until }}
+          </td>
+          <td>
+            <a class="has-text-link" href="/locations/{{ location.id }}/edit">Edit</a>
+            <!-- <a class="has-text-link" href="/locations/{{ location.id }}">Delete</a> -->
           </td>
         </tr>
       {% endfor %}

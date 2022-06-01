@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="title has-text-centered">
+  {{ location.name }}
+</h1>
+
+
+<div class="box" style="min-height: 70vh">
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+        <div class="notification is-success">
+            {{ messages[0] }}
+        </div>
+    {% endif %}
+  {% endwith %}
+
+  <a class="button is-link" href="/measurements/new?location={{ location.id }}">Add new measurement</a>
+  <a class="button is-light ml-3" href="/locations">Back to locations</a>
+
+  <div class="block mt-4">
+    <table id="measurements" class="table is-hoverable">
+      <!-- class="mt-6 table is-bordered is-striped is-fullwidth is-hoverable"> -->
+      <thead>
+        <th>
+          Month
+        </th>
+        <th>
+          T<sup>o</sup><sub>avg</sub>
+        </th>
+        <th>
+          T<sup>o</sup><sub>avg.min</sub>
+        </th>
+        <th>
+          T<sup>o</sup><sub>avg.max</sub>
+        </th>
+        <th>
+          Sunshine hrs.
+        </th>
+        <th>
+          Rain mm.
+        </th>
+        <th>
+          Rainy days
+        </th>
+        <th>
+          Avg. snow cover
+        </th>
+        <th>
+          Actions
+        </th>
+      </thead>
+      <tbody>
+        {% for measurement in location.measurements %}
+          <tr>
+            <td>
+              {{ measurement.year }}-{{ (measurement.month|string).rjust(2, '0') }}
+            </td>
+            <td>
+              {{ measurement.average_temp }}
+            </td>
+            <td>
+              {{ measurement.average_min_temp }}
+            </td>
+            <td>
+              {{ measurement.average_max_temp }}
+            </td>
+            <td>
+              {{ measurement.sunshine_hours }}
+            </td>
+            <td>
+              {{ measurement.rainfall }}
+            </td>
+            <td>
+              {{ measurement.rainy_days }}
+            </td>
+            <td>
+              {{ measurement.average_snow_coverage }}
+            </td>
+            <td>
+              <a class="has-text-link" href="/measurements/{{ measurement.id }}/edit">Edit</a>
+              <!-- <a class="has-text-link" href="/locations/{{ location.id }}">Delete</a> -->
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block js %}
+<script>
+  $(document).ready(function() {
+    $('#measurements').DataTable({
+      searching: false,
+      lengthChange: false,
+      pageLength: 50,
+    });
+  });
+</script>
+{% endblock %}

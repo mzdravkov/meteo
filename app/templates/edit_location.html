@@ -2,19 +2,19 @@
 
 {% block content %}
 <h1 class="title has-text-centered">
-  New location
+  Edit location
 </h1>
 
 
 
 <div class="box" style="min-height: 70vh">
   <div class="block mx-auto my-6" style="max-width: 80%">
-  <form id="create_location" method="POST" action="/locations">
+    <form id="update_location" method="POST" action="/locations/{{ location.id }}">
     <div class="field">
       <label class="label">Name</label>
       <div class="errors has-text-danger mb-2"></div>
       <div class="control">
-        <input name="name" class="input" type="text" placeholder="Location name">
+        <input name="name" class="input" type="text" placeholder="Location name" value="{{ location.name }}">
       </div>
     </div>
 
@@ -26,13 +26,13 @@
         <div class="field">
           <div class="errors has-text-danger mb-2"></div>
           <p class="control is-expanded">
-            <input name="valid_from" class="input" id="valid-from" type="text">
+          <input name="valid_from" class="input" id="valid-from" type="text" value="{{ location.valid_from }}">
           </p>
         </div>
         <div class="field">
           <div class="errors has-text-danger mb-2"></div>
           <p class="control is-expanded">
-            <input name="valid_until" class="input" id="valid-until" type="text">
+            <input name="valid_until" class="input" id="valid-until" type="text" value="{{ location.valid_until }}">
           </p>
         </div>
       </div>
@@ -40,7 +40,7 @@
 
     <div class="field is-grouped mt-5">
       <div class="control">
-        <button class="button is-link">Save location</button>
+        <button class="button is-link">Update location</button>
       </div>
       <div class="control">
         <a href="/locations" class="button is-link is-light">Back</a>
@@ -57,9 +57,9 @@
 {% block js %}
 <script>
   $(document).ready(function() {
-    $('#create_location').submit(function(e) {
+    $('#update_location').submit(function(e) {
       e.preventDefault();
-      submitForm('#create_location', function() {
+      submitForm('#update_location', function() {
          window.location = '/locations';
       });
     });

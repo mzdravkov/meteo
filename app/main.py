@@ -10,7 +10,7 @@ from webargs import fields, validate
 from webargs.flaskparser import use_args
 
 from . import db
-from .models import Location
+from .models import Location, MonthlyMeasurements
 
 main = Blueprint('main', __name__)
 
@@ -58,8 +58,88 @@ def new_location():
         },
         location='form')
 def create_location(args):
-    print(args)
+    location = Location(
+            name=args['name'],
+            valid_from=args['valid_from'],
+            valid_until=args['valid_until'])
+
+    db.session.add(location)
+    db.session.commit()
 
     flash('The new location was created.')
-    return ''
-    return redirect(url_for('main.locations'))
+    return 'Ok'
+
+
+@main.route('/locations/<id>/edit')
+def edit_location(id):
+    location = Location.query.filter_by(id=id).first()
+    return render_template('edit_location.html', current_user=current_user, location=location)
+
+
+@main.route('/locations/<id>', methods=['POST'])
+@use_args(
+        {
+            "name": fields.Str(required=True, validate=validate.Length(min=4, max=100)),
+            "valid_from": fields.Str(required=True, validate=validate.Length(equal=7)),
+            "valid_until": fields.Str(required=True, validate=validate.Length(equal=7)),
+        },
+        location='form')
+def update_location(args, id):
+    location = Location.query.filter_by(id=id).first()
+
+    location.name = args['name']
+    location.valid_from = args['valid_from']
+    location.valid_until = args['valid_until']
+
+    db.session.commit()
+
+    flash('The location was updated.')
+    return 'Ok'
+
+
+@main.route('/locations/<id>')
+def location(id):
+    location = Location.query.filter_by(id=id).first()
+    return render_template('location.html', current_user=current_user, location=location)
+
+
+@main.route('/measurements/new')
+def new_measurement():
+    location_id = request.args['location']
+    location = Location.query.filter_by(id=location_id).first()
+    return render_template('new_measurement.html', current_user=current_user, location=location)
+
+
+@main.route('/measurements', methods=['POST'])
+@use_args(
+        {
+            "month": fields.Str(required=True, validate=validate.Length(equal=7)),
+            "average_temp": fields.Float(required=True, validate=lambda val: val >= -273.15),
+            "average_min_temp": fields.Float(required=True, validate=lambda val: val >= -273.15),
+            "average_max_temp": fields.Float(required=True, validate=lambda val: val >= -273.15),
+            "sunshine_hours": fields.Float(required=True, validate=validate.Range(0, 744)),
+            "rainfall": fields.Float(required=True, validate=lambda val: val >= 0),
+            "rainy_days": fields.Integer(required=True, validate=validate.Range(0, 31)),
+            "average_snow_coverage": fields.Float(required=True, validate=lambda val: val >= 0),
+        },
+        location='form')
+def create_measurement(args):
+    location_id = request.args['location']
+
+    measurement = MonthlyMeasurements(
+            location=location_id,
+            year=int(args['month'][0:4]),
+            month=int(args['month'][5:7]),
+            average_temp=args['average_temp'],
+            average_min_temp=args["average_min_temp"],
+            average_max_temp=args["average_max_temp"],
+            sunshine_hours=args["sunshine_hours"],
+            rainfall=args["rainfall"],
+            rainy_days=args["rainy_days"],
+            average_snow_coverage=args["average_snow_coverage"])
+
+    db.session.add(measurement)
+    db.session.commit()
+
+    flash('The new measurement was created.')
+    return 'Ok'

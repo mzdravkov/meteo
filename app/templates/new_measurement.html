@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="title has-text-centered">
+  New measurement for <b>{{ location.name }}</b>
+</h1>
+
+
+
+<div class="box" style="min-height: 70vh">
+  <div class="block mx-auto my-6" style="max-width: 80%">
+    <form id="create_measurement" method="POST" action="/measurements?location={{ location.id }}">
+    <div class="field">
+      <label class="label">Month</label>
+      <div class="errors has-text-danger mb-2"></div>
+      <div class="control">
+        <input name="month" class="input" id="month" type="text">
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="label">Average temperature (<sup>o</sup>C)</label>
+      <div class="errors has-text-danger mb-2"></div>
+      <div class="control">
+        <input name="average_temp" class="input" id="average_temp" type="number" min="-273.15" step="any">
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="label">Average <b>minimum</b> temperature (<sup>o</sup>C)</label>
+      <div class="errors has-text-danger mb-2"></div>
+      <div class="control">
+        <input name="average_min_temp" class="input" id="average_min_temp" type="number" min="-273.15" step="any">
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="label">Average <b>maximum</b> temperature (<sup>o</sup>C)</label>
+      <div class="errors has-text-danger mb-2"></div>
+      <div class="control">
+        <input name="average_max_temp" class="input" id="average_max_temp" type="number">
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="label">Monthly sunshine hours</label>
+      <div class="errors has-text-danger mb-2"></div>
+      <div class="control">
+        <input name="sunshine_hours" class="input" id="sunshine_hours" type="number" min="0" max="744">
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="label">Monthly rainfall (in millimeters)</label>
+      <div class="errors has-text-danger mb-2"></div>
+      <div class="control">
+        <input name="rainfall" class="input" id="rainfall" type="number" min="0">
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="label">Number of days with rain</label>
+      <div class="errors has-text-danger mb-2"></div>
+      <div class="control">
+        <input name="rainy_days" class="input" id="rainy_days" type="number" min="0" max="31">
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="label">Average snow cover (in centimeters)</label>
+      <div class="errors has-text-danger mb-2"></div>
+      <div class="control">
+        <input name="average_snow_coverage" class="input" id="average_snow_coverage" type="number" min="0">
+      </div>
+    </div>
+
+    <div class="field is-grouped mt-5">
+      <div class="control">
+        <button class="button is-link">Save measurement</button>
+      </div>
+      <div class="control">
+        <a href="/locations/{{ location.id }}" class="button is-link is-light">Back</a>
+      </div>
+    </div>
+  </form>
+  </div>
+</div>
+
+
+
+{% endblock %}
+
+{% block js %}
+<script>
+  $(document).ready(function() {
+    $('#create_measurement').submit(function(e) {
+      e.preventDefault();
+      submitForm('#create_measurement', function() {
+        window.location = '/locations/{{ location.id }}';
+      });
+    });
+
+    jSuites.calendar(document.getElementById('month'), {
+      type: 'year-month-picker',
+      format: 'YYYY-mm',
+    });
+  });
+</script>
+{% endblock %}
