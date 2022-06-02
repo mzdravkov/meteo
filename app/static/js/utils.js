@@ -1,6 +1,19 @@
-function submitForm(formId, onSuccess) {
+serialize = function(obj) {
+  var str = [];
+  for (var p in obj)
+    if (obj.hasOwnProperty(p)) {
+      str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
+    }
+  return str.join("&");
+}
+
+function submitForm(formId, onSuccess, queryParams) {
   var form = $(formId);
   var url = form.attr('action');
+
+  if (queryParams != null) {
+    url += "?" + serialize(queryParams);
+  }
 
   // filter empty fields
   let data = $(formId + " :input")
