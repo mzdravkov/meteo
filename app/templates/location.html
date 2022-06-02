@@ -18,11 +18,31 @@
   <div class="modal">
     <div class="modal-background"></div>
     <div class="modal-content">
+      <!-- <div class="box" style="min-width: 400px; min-height: 60vh"> -->
       <div class="box">
         <h3 class="subtitle has-text-black is-3">
           Overwrite existing measurements?
         </h3>
         <form id="load-data-form" class="form" method="POST" action="/locations/{{ location.id }}/load_data">
+          <!-- <div class="field"> -->
+          <!--   <div class="label is-normal"> -->
+          <!--     <label class="label">Period to load</label> -->
+          <!--   </div> -->
+          <!--   <div class="field-body"> -->
+          <!--     <div class="field"> -->
+          <!--       <div class="errors has-text-danger mb-2"></div> -->
+          <!--       <p class="control is-expanded"> -->
+          <!--         <input name="period_from" class="input" id="period-from" type="text"> -->
+          <!--       </p> -->
+          <!--     </div> -->
+          <!--     <div class="field"> -->
+          <!--       <div class="errors has-text-danger mb-2"></div> -->
+          <!--       <p class="control is-expanded"> -->
+          <!--         <input name="period_until" class="input" id="period-until" type="text"> -->
+          <!--       </p> -->
+          <!--     </div> -->
+          <!--   </div> -->
+          <!-- </div> -->
           <div class="field is-grouped mt-5">
             <div class="control">
               <button id="overwrite-data-btn" class="button is-link">Yes, ovewrite existing</button>
@@ -124,6 +144,7 @@
       searching: false,
       lengthChange: false,
       pageLength: 50,
+      order: [[0, 'desc']],
     });
 
     $('#load-data-form').submit(function(e) {
@@ -135,11 +156,23 @@
         queryParams = {
             "overwrite_existing": true
         };
+        $('#overwrite-data-btn').addClass('is-loading');
+      } else {
+        $('#load-missing-data-btn').addClass('is-loading');
       }
       submitForm('#load-data-form', function() {
-          window.location = '/location/{{ location.id }}';
+          window.location = '/locations/{{ location.id }}';
       }, queryParams);
     });
+
+    <!-- jSuites.calendar(document.getElementById('period-from'), { -->
+    <!--   type: 'year-month-picker', -->
+    <!--   format: 'YYYY-mm', -->
+    <!-- }); -->
+    <!-- jSuites.calendar(document.getElementById('period-until'), { -->
+    <!--   type: 'year-month-picker', -->
+    <!--   format: 'YYYY-mm', -->
+    <!-- }); -->
 
 
     $('#load-data-btn').click(function(e) {

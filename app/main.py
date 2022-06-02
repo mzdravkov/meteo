@@ -1,3 +1,5 @@
+import asyncio
+
 from flask import Blueprint
 from flask import render_template
 from flask import redirect
@@ -10,6 +12,7 @@ from webargs import fields, validate
 from webargs.flaskparser import use_args
 
 from . import db
+from .scraping import load_historical_data
 from .models import Location, MonthlyMeasurements
 
 main = Blueprint('main', __name__)
@@ -143,3 +146,16 @@ def create_measurement(args):
 
     flash('The new measurement was created.')
     return 'Ok'
+
+
+@main.route('/locations/<location_id>/load_data', methods=["POST"])
+def load_data(location_id):
+    location = Location.query.filter_by(id=location_id).first()
+    overwrite_existing = request.args['overwrite_existing']
+    overwrite_existing = overwrite_existing.lower() in ('true', '1', 't', 'y', 'yes')
+
+    asyncio.run(load_historical_data(location, overwrite_existing))
+
+    flash('Historical data loaded successfully.')
+    return 'Ok'
+

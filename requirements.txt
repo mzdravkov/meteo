@@ -5,3 +5,4 @@ webargs
 requests
 pandas
 lxml
+aiohttp
