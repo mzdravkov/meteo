@@ -26,6 +26,9 @@ main = Blueprint('main', __name__)
 
 @main.route('/')
 def index():
+    """
+    index shows a table with the measurements for a given month
+    """
     year = request.args.get('year', None)
     month = request.args.get('month', None)
     if not (year and month):
@@ -50,10 +53,12 @@ def index():
             measurements=measurements)
 
 
-# Return validation errors as JSON
 @main.errorhandler(422)
 @main.errorhandler(400)
 def handle_error(err):
+    """
+    Return validation errors as JSON
+    """
     headers = err.data.get("headers", None)
     messages = err.data.get("messages", ["Invalid request."])
     if headers:
@@ -70,6 +75,9 @@ def profile():
 
 @main.route('/locations')
 def locations():
+    """
+    Shows a list of all locations.
+    """
     locations = Location.query.all()
     return render_template('locations.html', current_user=current_user, locations=locations)
 
@@ -77,6 +85,9 @@ def locations():
 @main.route('/locations/new')
 @login_required
 def new_location():
+    """
+    Shows a page for adding a new location.
+    """
     return render_template('new_location.html', current_user=current_user)
 
 
@@ -90,6 +101,9 @@ def new_location():
         },
         location='form')
 def create_location(args):
+    """
+    Saves a new location to the database.
+    """
     location = Location(
             name=args['name'],
             valid_from=args['valid_from'],
@@ -105,18 +119,11 @@ def create_location(args):
 @main.route('/locations/<id>/edit')
 @login_required
 def edit_location(id):
+    """
+    Shows a page for editing an existing location.
+    """
     location = Location.query.filter_by(id=id).first()
     return render_template('edit_location.html', current_user=current_user, location=location)
-
-
-@main.route('/locations/<id>/delete')
-@login_required
-def delete_location(id):
-    location = Location.query.filter_by(id=id).first()
-    db.session.delete(location)
-    db.session.commit()
-    flash('Location deleted.')
-    return redirect('/locations')
 
 
 @main.route('/locations/<id>', methods=['POST'])
@@ -129,6 +136,9 @@ def delete_location(id):
         },
         location='form')
 def update_location(args, id):
+    """
+    Updates an existing location.
+    """
     location = Location.query.filter_by(id=id).first()
 
     location.name = args['name']
@@ -141,8 +151,24 @@ def update_location(args, id):
     return 'Ok'
 
 
+@main.route('/locations/<id>/delete')
+@login_required
+def delete_location(id):
+    """
+    Deletes an existing location.
+    """
+    location = Location.query.filter_by(id=id).first()
+    db.session.delete(location)
+    db.session.commit()
+    flash('Location deleted.')
+    return redirect('/locations')
+
+
 @main.route('/locations/<id>')
 def location(id):
+    """
+    Shows a location with all its measurements.
+    """
     location = Location.query.filter_by(id=id).first()
     return render_template('location.html', current_user=current_user, location=location)
 
@@ -150,6 +176,9 @@ def location(id):
 @main.route('/measurements/new')
 @login_required
 def new_measurement():
+    """
+    Shows a page for adding a new measurement for a location.
+    """
     location_id = request.args['location']
     location = Location.query.filter_by(id=location_id).first()
     return render_template('new_measurement.html', current_user=current_user, location=location)
@@ -170,6 +199,9 @@ def new_measurement():
         },
         location='form')
 def create_measurement(args):
+    """
+    Saves a new measurement for an existing location.
+    """
     location_id = request.args['location']
 
     measurement = MonthlyMeasurements(
@@ -194,6 +226,9 @@ def create_measurement(args):
 @main.route('/locations/<location_id>/load_data', methods=["POST"])
 @login_required
 def load_data(location_id):
+    """
+    Loads historical measurement data from stringmeteo.com.
+    """
     location = Location.query.filter_by(id=location_id).first()
     overwrite_existing = request.args['overwrite_existing']
     overwrite_existing = overwrite_existing.lower() in ('true', '1', 't', 'y', 'yes')
@@ -206,6 +241,9 @@ def load_data(location_id):
 
 @main.route('/weights')
 def weights():
+    """
+    Shows a page for editing the weights for the locations.
+    """
     locations = Location.query.all()
 
     if len(locations) == 0:
@@ -238,6 +276,9 @@ def weights():
 @main.route('/weights', methods=["POST"])
 @login_required
 def update_weights():
+    """
+    Updates the weights of the existing locations.
+    """
     locations = Location.query.all()
 
     location_weights = {}
@@ -265,10 +306,16 @@ def update_weights():
 
 @main.route('/chart')
 def chart():
+    """
+    Shows a page with a chart of historical aggregated measurements.
+    """
     return render_template('chart.html')
 
 
 @main.route('/chart-data')
 def chart_data():
+    """
+    Returns all aggregated historical measurements as JSON.
+    """
     agg_measurements = get_aggregated_measurements()
     return jsonify(agg_measurements)
