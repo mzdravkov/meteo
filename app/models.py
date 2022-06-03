@@ -32,5 +32,13 @@ class Location(db.Model):
     name = db.Column(db.String(100))
     valid_from = db.Column(db.String(7))
     valid_until = db.Column(db.String(7))
-    measurements = db.relationship("MonthlyMeasurements")
+    measurements = db.relationship("MonthlyMeasurements", cascade="all, delete-orphan")
+    weights = db.relationship("Weight", cascade="all, delete-orphan")
+
+
+class Weight(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    location = db.Column(db.Integer, db.ForeignKey('location.id'))
+    year = db.Column(db.Integer, nullable=False)
+    value = db.Column(db.Float)
 

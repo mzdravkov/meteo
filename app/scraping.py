@@ -142,9 +142,9 @@ async def get_snow_data(location, year, month):
     return float(df[snow_days_column_index][row_index]), float(df[avg_snow_cover_column_index][row_index])
 
 
-async def __load_monthly_measurements(location, year, month, sem):
-    # semaphore limits num of simultaneous downloads
-    async with sem:
+async def __load_monthly_measurements(location, year, month, semaphore):
+    # semaphore limits the number of simultaneous requests
+    async with semaphore:
         measurements = await asyncio.gather(
             get_average_temp(location.name, year, month),
             get_average_temp_extremums(location.name, year, month),
@@ -179,11 +179,21 @@ async def load_historical_data(location, overwrite_existing):
 
     awaitables = []
 
-    sem = asyncio.Semaphore(6)
+    semaphore = asyncio.Semaphore(6)
 
     current_year = date.today().year
-    for year in range(HISTORICAL_DATA_START_YEAR, current_year + 1):
-        max_month = date.today().month if year == current_year else 12
+    current_month = date.today().month
+
+    start = max(location.valid_from, "{}-{}".format(HISTORICAL_DATA_START_YEAR, 1))
+    end = min(location.valid_until, "{}-{}".format(current_year, current_month))
+
+    start_year = int(start[:4])
+    start_month = int(start[5:])
+    end_year = int(end[:4])
+    end_month = int(end[5:])
+
+    for year in range(start_year, end_year + 1):
+        max_month = end_month if year == end_year else 12
         for month in range(1, max_month + 1):
             if (year, month) in existing_months:
                 if overwrite_existing:
@@ -195,7 +205,7 @@ async def load_historical_data(location, overwrite_existing):
                     db.session.commit()
                 else:
                     continue
-            awaitables.append(__load_monthly_measurements(location, year, month, sem))
+            awaitables.append(__load_monthly_measurements(location, year, month, semaphore))
 
     for coroutine in asyncio.as_completed(awaitables):
         measurement = await coroutine

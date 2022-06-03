@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="title has-text-centered">
+  Weights
+</h1>
+
+
+<div class="box" style="min-height: 70vh">
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+        <div class="notification is-success">
+            {{ messages[0] }}
+        </div>
+    {% endif %}
+  {% endwith %}
+  <div class="notification is-danger is-invisible">
+  </div>
+
+  <a id="set-equal-weights" class="button is-link">Set equal weights</a>
+  <a class="button is-light ml-3" href="/locations">Back to locations</a>
+
+  <div class="block mt-4">
+    <form id="update-weights-form" method="POST" action="/weights">
+      <table id="weights-table" class="table is-fullwidth">
+        <thead>
+          <th>
+            Year
+          </th>
+          {% for location in locations %}
+            <th>
+              {{ location.name }}
+            </th>
+          {% endfor %}
+          <th>
+            Total
+          </th>
+        </thead>
+        <tbody>
+          {% for year in range(min_year, max_year + 1) %}
+            <tr>
+              <td>
+                <b>{{ year }}</b>
+              </td>
+              {% for location in locations %}
+                <td>
+                  <input class="input is-small" name="{{ location.id }}-{{ year }}" type="number" min="0" step="0.01" max="1" value="{{ weights[location.id][year] }}" style="max-width: 70px">
+                </td>
+              {% endfor %}
+              <td class="total" id="year-{{ year }}">
+              </td>
+            <tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <div class="control">
+        <button id="save-weights-btn" class="button is-link">Save weights</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block js %}
+<script>
+  function updateRowTotal(row) {
+      var sum = 0;
+      $(row).find('input').each(function() {
+        if (this.value != '') {
+          sum += parseFloat(this.value);
+        }
+      });
+      $(row).find('.total').empty();
+      $(row).find('.total').append(roundUp(sum, 2));
+      if (roundUp(sum, 2) == 1) {
+        $(row).find('.total').removeClass('has-text-danger');
+      } else {
+        $(row).find('.total').addClass('has-text-danger');
+      }
+  }
+
+  function isFormValid() {
+    let totals = $('tr .total').text();
+    for (let total of totals) {
+       if (total != 1) {
+          $('div.notification.is-danger').empty();
+          $('div.notification.is-danger').removeClass('is-invisible');
+          $('div.notification.is-danger').append('The weights for every year should sum up to 1!');
+          return false;
+       }
+    }
+    return true;
+  }
+
+  function round2(num) {
+    return Math.round(100*num)/100;
+  }
+
+  $(document).ready(function() {
+    $('#update-weights-form').submit(function(e) {
+      e.preventDefault();
+      if (isFormValid()) {
+        submitForm('#update-weights-form', function() {
+           window.location = '/weights';
+        });
+      }
+    });
+
+    $('#set-equal-weights').click(function(e) {
+      let locationsCount = {{ locations|length }};
+      let weight = round2(1/locationsCount);
+      $('#update-weights-form input').val(weight);
+      let rows = $('#update-weights-form tr');
+      for (let row of rows) {
+        let remainingWeight = round2(1 - (locationsCount-1)*weight);
+        $(row).find('td:last').prev().find('input').val(remainingWeight);
+        updateRowTotal(row);
+      }
+    });
+
+    $('#weights-table tbody tr').each(function() {
+        updateRowTotal(this);
+    });
+
+    $('#weights-table input').change(function() {
+      let row = $(this).closest('tr');
+      updateRowTotal(row);
+    });
+  });
+</script>
+{% endblock %}

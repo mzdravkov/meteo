@@ -101,7 +101,7 @@
         {% for measurement in location.measurements %}
           <tr>
             <td>
-              {{ measurement.year }}-{{ (measurement.month|string).rjust(2, '0') }}
+              <b>{{ measurement.year }}-{{ (measurement.month|string).rjust(2, '0') }}</b>
             </td>
             <td>
               {{ measurement.average_temp }}
