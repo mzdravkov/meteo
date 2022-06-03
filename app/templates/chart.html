@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="title has-text-centered">
+  Charts
+</h1>
+
+
+<div class="box" style="min-height: 70vh">
+  <form>
+    <div class="field is-horizontal">
+      <div class="field-label is-normal" style="max-width: 60px">
+        <label class="label">Variable:</label>
+      </div>
+      <div class="field-body">
+        <div class="field">
+          <p class="control is-narrow">
+            <div id="var_select" class="select">
+              <select>
+                <option value="avg_temp">Average temperature</option>
+                <option value="avg_min_temp">Average min. temperature</option>
+                <option value="avg_max_temp">Average max. temperature</option>
+                <option value="sunshine">Sunshine hours</option>
+                <option value="rainfall">Rainfall (mm)</option>
+                <option value="rainy_days">Days with rain</option>
+                <option value="avg_snow_cover">Average snow cover</option>
+              </select>
+            </div>
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="field">
+      <div class="label is-normal">
+        <label class="label">Period</label>
+      </div>
+      <div class="field-body">
+        <div class="field">
+          <div class="errors has-text-danger mb-2"></div>
+          <p class="control is-expanded">
+            <input name="from" class="input" id="from" type="text">
+          </p>
+        </div>
+        <div class="field">
+          <div class="errors has-text-danger mb-2"></div>
+          <p class="control is-expanded">
+            <input name="until" class="input" id="until" type="text">
+          </p>
+        </div>
+      </div>
+    </div>
+  </form>
+
+  <div class="columns">
+    <div class="column">
+      <!-- <h2 class="subtitle has-text-black has-text-centered">Measurements for {{ year }}-{{ (month|string).rjust(2, '0') }}</h2> -->
+    </div>
+    <div class="column">
+    </div>
+  </div>
+
+  <canvas id="chart" width="400" height="150"></canvas>
+</div>
+
+{% endblock %}
+
+{% block js %}
+<script>
+  var measurements;
+  var chart;
+
+  function getSelectedVariableName() {
+    return $('#var_select').find(':selected').text();
+  }
+
+  function getSelectedVariableValue() {
+    return $('#var_select').find(':selected').val();
+  }
+
+  function getMonthsForPeriod(from, until) {
+    return Object.keys(measurements).filter(m => m >= from && m < until);
+  }
+
+  function getValuesForPeriod(from, until) {
+    let months = getMonthsForPeriod(from, until);
+    let variable = getSelectedVariableValue();
+    var result = {};
+    for (let month of months) {
+      result[month] = measurements[month][variable];
+    }
+    return result;
+  }
+
+  function getDataset(from, until) {
+    return [{
+        label: getSelectedVariableName(),
+        data: getValuesForPeriod(from, until),
+        borderColor: 'blue',
+        borderWidth: 1,
+    }];
+  }
+
+  function updateChart(from, until) {
+    chart.data.labels = getMonthsForPeriod(from, until);
+    chart.data.datasets = getDataset(from, until);
+    chart.update();
+  }
+
+  function drawChart(from, until) {
+    if (chart != null) {
+      updateChart(from, until);
+      return;
+    }
+
+    ctx = document.getElementById('chart').getContext('2d');
+    chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: getMonthsForPeriod(from, until),
+            datasets: getDataset(from, until),
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+    chartDrawn = true;
+  }
+
+  $('#var_select').change(function(e) {
+    let from = $('input#from').val();
+    let until = $('input#until').val();
+    if (from !== '' && until !== '') {
+      drawChart(from, until);
+    }
+  });
+
+  $(document).ready(function() {
+    $.getJSON('/chart-data', function(data) {
+      measurements = data;
+    });
+
+    jSuites.calendar(document.getElementById('from'), {
+      type: 'year-month-picker',
+      format: 'YYYY-mm',
+      onclose: function(e) {
+        let until = $('input#until').val();
+        if (until !== '') {
+          drawChart(e.value, until);
+        }
+      },
+    });
+    jSuites.calendar(document.getElementById('until'), {
+      type: 'year-month-picker',
+      format: 'YYYY-mm',
+      onclose: function(e) {
+        let from = $('input#from').val();
+        if (from !== '') {
+          drawChart(from, e.value);
+        }
+      },
+    });
+
+  });
+</script>
+{% endblock %}

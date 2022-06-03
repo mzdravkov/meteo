@@ -1,4 +1,5 @@
 import asyncio
+import json
 from collections import defaultdict
 from datetime import date
 
@@ -18,13 +19,35 @@ from .scraping import load_historical_data
 from .models import Location
 from .models import MonthlyMeasurements
 from .models import Weight
+from .aggregation import get_aggregated_measurements
 
 main = Blueprint('main', __name__)
 
 
 @main.route('/')
 def index():
-    return render_template('index.html')
+    year = request.args.get('year', None)
+    month = request.args.get('month', None)
+    if not (year and month):
+        year = date.today().year
+        month = date.today().month
+    year = int(year)
+    month = int(month)
+
+    locations = Location.query.all()
+    measurements = {}
+    for location in locations:
+        measurement = next(
+                (m for m in location.measurements
+                    if m.year == year and m.month == month),
+                None)
+        measurements[location] = measurement
+
+    return render_template('index.html',
+            year=year,
+            month=month,
+            locations=locations,
+            measurements=measurements)
 
 
 # Return validation errors as JSON
@@ -240,3 +263,12 @@ def update_weights():
     return 'ok'
 
 
+@main.route('/chart')
+def chart():
+    return render_template('chart.html')
+
+
+@main.route('/chart-data')
+def chart_data():
+    agg_measurements = get_aggregated_measurements()
+    return jsonify(agg_measurements)

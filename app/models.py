@@ -26,6 +26,21 @@ class MonthlyMeasurements(db.Model):
     rainy_days = db.Column(db.Integer)
     rainfall = db.Column(db.Float)
 
+    def as_dict(self):
+        hashmap = {
+            'location': self.location,
+            'year': self.year,
+            'month': self.month,
+            'avg_temp': self.average_temp,
+            'avg_min_temp': self.average_min_temp,
+            'avg_max_temp': self.average_max_temp,
+            'sunshine': self.sunshine_hours,
+            'rainfall': self.rainfall,
+            'rainy_days': self.rainy_days,
+            'avg_snow_cover': self.average_snow_coverage,
+        }
+        return hashmap
+
 
 class Location(db.Model):
     id = db.Column(db.Integer, primary_key=True)

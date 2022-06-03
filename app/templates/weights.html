@@ -93,10 +93,6 @@
     return true;
   }
 
-  function round2(num) {
-    return Math.round(100*num)/100;
-  }
-
   $(document).ready(function() {
     $('#update-weights-form').submit(function(e) {
       e.preventDefault();
@@ -109,11 +105,11 @@
 
     $('#set-equal-weights').click(function(e) {
       let locationsCount = {{ locations|length }};
-      let weight = round2(1/locationsCount);
+      let weight = roundUp(1/locationsCount, 2);
       $('#update-weights-form input').val(weight);
       let rows = $('#update-weights-form tr');
       for (let row of rows) {
-        let remainingWeight = round2(1 - (locationsCount-1)*weight);
+        let remainingWeight = roundUp(1 - (locationsCount-1)*weight, 2);
         $(row).find('td:last').prev().find('input').val(remainingWeight);
         updateRowTotal(row);
       }

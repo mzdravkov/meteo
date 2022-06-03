@@ -1,10 +1,127 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1 class="title">
-  Meteo
+<h1 class="title has-text-centered">
+  Aggregated measurements
 </h1>
-<h2 class="subtitle">
-  Meteo
-</h2>
+
+
+<div class="box" style="min-height: 70vh">
+
+  <div class="columns">
+    <div class="column">
+      <form>
+        <div class="field is-horizontal">
+          <div class="field-label is-normal" style="max-width: 60px">
+            <label class="label">Show:</label>
+          </div>
+          <div class="field-body">
+            <div class="field">
+              <p class="control is-narrow">
+                <input name="month" class="input" id="month" type="text" style="max-width: 120px">
+              </p>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="column">
+      <h2 class="subtitle has-text-black has-text-centered">Measurements for {{ year }}-{{ (month|string).rjust(2, '0') }}</h2>
+    </div>
+    <div class="column">
+    </div>
+  </div>
+
+
+
+  <hr/>
+  <table id="aggregated_measurements" class="table is-hoverable">
+    <thead>
+      <th>
+        Location
+      </th>
+      <th>
+        T<sup>o</sup><sub>avg</sub>
+      </th>
+      <th>
+        T<sup>o</sup><sub>avg.min</sub>
+      </th>
+      <th>
+        T<sup>o</sup><sub>avg.max</sub>
+      </th>
+      <th>
+        Sunshine hrs.
+      </th>
+      <th>
+        Rain mm.
+      </th>
+      <th>
+        Rainy days
+      </th>
+      <th>
+        Avg. snow cover
+      </th>
+    </thead>
+    <tbody>
+      {% for location in locations %}
+        <tr>
+          <td>
+            <b>{{ location.name }}</b>
+          </td>
+          <td>
+            {{ measurements[location].average_temp }}
+          </td>
+          <td>
+            {{ measurements[location].average_min_temp }}
+          </td>
+          <td>
+            {{ measurements[location].average_max_temp }}
+          </td>
+          <td>
+            {{ measurements[location].sunshine_hours }}
+          </td>
+          <td>
+            {{ measurements[location].rainfall }}
+          </td>
+          <td>
+            {{ measurements[location].rainy_days }}
+          </td>
+          <td>
+            {{ measurements[location].average_snow_coverage }}
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}
+
+{% block js %}
+<script>
+
+  $(document).ready(function() {
+    $('#aggregated_measurements').DataTable({
+      searching: false,
+      lengthChange: false,
+      pageLength: 50,
+      order: [[0, 'desc']],
+    });
+
+    $('#month').val({{ year }} + '-' + {{ month }});
+
+    jSuites.calendar(document.getElementById('month'), {
+      type: 'year-month-picker',
+      format: 'YYYY-mm',
+      onclose: function(e) {
+        let [year, month] = e.value.split('-');
+        let params = {
+            year: parseInt(year),
+            month: parseInt(month),
+        };
+        window.location = '/?' + serialize(params);
+      },
+    });
+  });
+</script>
 {% endblock %}
